@@ -1,0 +1,22 @@
+seed: 2345
+dataset: 'ptb'
+length: 70
+fully: True
+
+n_layers: 6
+dim_embed: 320
+dim_model: 320
+dim_ff: 1024
+num_heads: 16
+dropouti: 0.5
+dropouth: 0.1
+dropoutc: 0.5
+rel_pos: False
+ffn: True
+
+n_epochs: 50
+batch_size: 64
+dev_batch_size: 64
+opt_wrapper: 'reduce_lr_on_plateau_min'
+log_interval: 10
+

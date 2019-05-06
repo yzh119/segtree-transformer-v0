@@ -1,6 +1,10 @@
 # segtree-transformer-v0
 This repo contains code and configs of [SegTree Transformer: Iterative Refinement of Hierarchical Features](https://rlgm.github.io/papers/67.pdf) (ICLR-RLGM 2019).
 
+SegTree Transformer incorporates a latent Segment Tree structure to transformer model, the time/space complexity of SegTree Transformer per layer is O(d * n log n), where d refers to the hidden size and n refers to the sequence length. 
+
+The model is implemented in *Deep Graph Library(DGL)* with PyTorch as backend.
+
 # Requirements
 - Python 3.6+
 - PyTorch 1.0+
@@ -11,7 +15,7 @@ pip install torch torchvision
 ```
 pip install https://github.com/pytorch/text/archive/master.zip
 ```
-- DGL 0.3rc (build from source)
+- DGL (build from source code in master branch)
 ```
 git clone https://github.com/dmlc/dgl.git --recurse
 cd dgl
@@ -34,10 +38,21 @@ python
 >>> exit()
 ```
 
-# Install
-The graph builder module is written in Cython, before we run experiments this module must be built:
+# Submodules
+Before we run experiments, the following submodules must be built manually.
+
+## Graph Builder
+The graph builder module is written in Cython to accelerate graph construction:
 ```
 cd graphbuiler
+python setup.py install
+```
+
+## Custom Op
+
+The custom op module is written in CUDA, to accelerate graph attentions. *DGL 0.3 would provide much faster graph kernels, this submodule will be deprecated after the release of DGL 0.3*.
+```
+cd customop
 python setup.py install
 ```
 

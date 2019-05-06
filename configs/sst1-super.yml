@@ -1,0 +1,21 @@
+seed: 2345
+dataset: 'sst1'
+fully: False
+
+n_layers: 4
+dim_embed: 300
+dim_model: 300
+dim_ff: 600
+num_heads: 10
+dropouti: 0.4
+dropouth: 0.1
+dropouta: 0.3
+dropoutc: 0.4
+rel_pos: True
+ffn: True
+
+n_epochs: 30
+batch_size: 4096
+dev_batch_size: 4096
+opt_wrapper: 'exp_decay'
+log_interval: 10
