@@ -1,7 +1,7 @@
 # segtree-transformer-v0
 This repo contains code and configs of [SegTree Transformer: Iterative Refinement of Hierarchical Features](https://rlgm.github.io/papers/67.pdf) (ICLR-RLGM 2019).
 
-SegTree Transformer incorporates a latent Segment Tree structure to transformer model, the time/space complexity of SegTree Transformer per layer is O(d * n log n), where d refers to the hidden size and n refers to the sequence length. 
+Transformer model can be viewed as a Graph Attention Network over complete graphs. Instead of complete graph, SegTree Transformer incorporates a latent Segment Tree structure with bottom-up and top-down edges, the time/space complexity per layer is O(d * n log n), where d refers to the hidden size and n refers to the sequence length. 
 
 The model is implemented in *Deep Graph Library(DGL)* with PyTorch as backend.
 
@@ -50,7 +50,7 @@ python setup.py install
 
 ## Custom Op
 
-The custom op module is written in CUDA, to accelerate graph attentions. *DGL 0.3 would provide much faster graph kernels, this submodule will be deprecated after the release of DGL 0.3*.
+The custom op module is written in CUDA, to accelerate graph attentions. *DGL 0.3 would provide much faster graph kernels, this submodule shall be deprecated after the release of DGL 0.3*.
 ```
 cd customop
 python setup.py install
