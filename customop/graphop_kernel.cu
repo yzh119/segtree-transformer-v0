@@ -276,20 +276,27 @@ __global__ void sparse_softmax_forward_kernel(const idx_t* __restrict__ indptr, 
  * indptr, eid: csr format
  */
 template <typename idx_t, typename data_t>
-__global__ void sparse_softmax_backward_kernel(const idx_t* __restrict__ indptr, const idx_t* __restrict__ eid, const data_t* __restrict__ dy, const data_t* __restrict__ y, data_t* __restrict__ dx, const int n, const int h) {
+__global__ void sparse_softmax_backward_kernel_0(const idx_t* __restrict__ indptr, const idx_t* __restrict__ eid, const data_t* __restrict__ dy, const data_t* __restrict__ y, data_t* __restrict__ aggre, const int n, const int h) {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    int ty = threadIdx.y;
-    int tz = threadIdx.z;
+    int j = threadIdx.y;
     if (i < n) {
-        for (int kj = indptr[i] + ty; kj < indptr[i + 1]; kj += blockDim.y) {
-            data_t dsum = 0;
-            for (int ki = indptr[i]; ki < indptr[i + 1]; ++ki) {
-                dsum -= dy[eid[ki] * h + tz] * y[eid[ki] * h + tz] * y[eid[kj] * h + tz];
-                if (ki == kj) dsum += dy[eid[ki] * h + tz] * y[eid[ki] * h + tz];
-            }
-            dx[eid[kj] * h + tz] = dsum;
-        }
+        data_t sum = 0;
+        for (int k = indptr[i]; k < indptr[i + 1]; ++k) {
+            sum += dy[eid[k] * h + j] * y[eid[k] * h + j];
+        } 
+        aggre[i * h + j] = sum;
     }
+}
+
+template <typename idx_t, typename data_t>
+__global__ void sparse_softmax_backward_kernel_1(const idx_t* __restrict__ indptr, const idx_t* __restrict__ eid, const data_t* __restrict__ dy, const data_t* __restrict__ y, const data_t* __restrict__ aggre, data_t* __restrict__ dx, const int n, const int h) {
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = threadIdx.y;
+    if (i < n) {
+        for (int k = indptr[i]; k < indptr[i + 1]; ++k) {
+            dx[eid[k] * h + j] = dy[eid[k] * h + j] * y[eid[k] * h + j] - aggre[i * h + j] * y[eid[k] * h + j] ;
+        }
+    } 
 }
 
 } // End of namespace
@@ -559,18 +566,29 @@ at::Tensor sparse_softmax_cuda_backward(
     const auto n = indptr.size(0) - 1;
     const auto h = (dy.dim() == 2) ? dy.size(1): 1;
     assert(h <= 32);
-    const dim3 threads(1, 32, h);
+    const dim3 threads(32, h);
     const dim3 blocks((n + threads.x - 1) / threads.x);
     cudaStream_t stream = at::cuda::getCurrentCUDAStream();
     
+    const auto aggre = (h == 1) ? at::zeros({n}, dy.options()): at::zeros({n, h}, dy.options());
     const auto dx = at::zeros_like(dy, dy.options());
 
-    AT_DISPATCH_IDX_DATA_TYPES(eid.type(), y.type(), "sparse_softmax_cuda_backward", ([&] {
-        sparse_softmax_backward_kernel<idx_t, data_t><<<blocks, threads, 0, stream>>>(
+    AT_DISPATCH_IDX_DATA_TYPES(eid.type(), y.type(), "sparse_softmax_cuda_backward_0", ([&] {
+        sparse_softmax_backward_kernel_0<idx_t, data_t><<<blocks, threads, 0, stream>>>(
             indptr.data<idx_t>(),
             eid.data<idx_t>(),
             dy.data<data_t>(),
             y.data<data_t>(),
+            aggre.data<data_t>(),
+            n, h); 
+    }));
+    AT_DISPATCH_IDX_DATA_TYPES(eid.type(), y.type(), "sparse_softmax_cuda_backward_1", ([&] {
+        sparse_softmax_backward_kernel_1<idx_t, data_t><<<blocks, threads, 0, stream>>>(
+            indptr.data<idx_t>(),
+            eid.data<idx_t>(),
+            dy.data<data_t>(),
+            y.data<data_t>(),
+            aggre.data<data_t>(),
             dx.data<data_t>(),
             n, h); 
     }));
