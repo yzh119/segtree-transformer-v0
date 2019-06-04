@@ -1,0 +1,22 @@
+seed: 2345
+dataset: 'snli'
+fully: False
+
+n_layers: 8
+dim_embed: 300
+dim_model: 600
+dim_ff: 1200 
+num_heads: 10
+dropouti: 0.65
+dropouth: 0.1
+dropouta: 0.5
+dropoutc: 0.65
+rel_pos: True
+ffn: True
+
+n_epochs: 200
+lr: 1.e-4
+batch_size: 512
+dev_batch_size: 512
+opt_wrapper: 'exp_decay'
+log_interval: 80

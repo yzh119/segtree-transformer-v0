@@ -1,4 +1,5 @@
 from functools import partial
+import math
 
 
 class NoamOpt(object):
@@ -37,8 +38,34 @@ class NoamOpt(object):
     def adjust_lr(self, *args):
         pass
 
+class CosineOpt(object):
+    def __init__(self, optimizer, T_max=400000, warmup=4000):
+        self.optimizer = optimizer
+        self._step = 0
+        self.T_max = T_max
+        self.warmup = warmup
+        self.init_lr = {}
+        for p in self.optimizer.param_groups:
+            self.init_lr[id(p)] = p['lr']
+
+    def zero_grad(self):
+        self.optimizer.zero_grad()
+
+    def step(self):
+        self._step += 1
+        if self._step <= self.warmup:
+            for p in self.optimizer.param_groups:
+                p['lr'] = self.init_lr[id(p)] * (self._step / self.warmup) 
+        else:
+            for p in self.optimizer.param_groups:
+                p['lr'] = self.init_lr[id(p)] * (1 + math.cos(math.pi * (self._step - 1) / self.T_max)) / 2 # TODO
+        self.optimizer.step()
+
+    def adjust_lr(self, *args, **kwargs):
+        pass        
+
 class ReduceLROnPlateauOpt(object):
-    def __init__(self, optimizer, order='min', rate=0.5, warmup=400):
+    def __init__(self, optimizer, order='min', rate=0.5, warmup=1600):
         self.optimizer = optimizer
         self.order = order
         self._step = 0
@@ -83,14 +110,24 @@ class ReduceLROnPlateauOpt(object):
 
 
 class ExponentialDecay(object):
-    def __init__(self, optimizer, rate=0.99):
+    def __init__(self, optimizer, rate=1, warmup=4000):
         self.optimizer = optimizer
         self.rate = rate
+        self._step = 0
+        self.warmup = warmup
+        self.init_lr = {}
+        for p in self.optimizer.param_groups:
+            self.init_lr[id(p)] = p['lr']
+
 
     def zero_grad(self):
         self.optimizer.zero_grad()
 
     def step(self):
+        self._step += 1
+        if self._step <= self.warmup:
+            for p in self.optimizer.param_groups:
+                p['lr'] = self.init_lr[id(p)] * (self._step / self.warmup) 
         self.optimizer.step()
 
     def adjust_lr(self, *args):
@@ -101,6 +138,8 @@ class ExponentialDecay(object):
 def get_wrapper(name):
     if name == 'noam':
         return NoamOpt
+    if name == 'cosine':
+        return CosineOpt 
     elif name == 'exp_decay':
         return ExponentialDecay
     elif name == 'reduce_lr_on_plateau_min':
