@@ -7,7 +7,7 @@ dim_embed: 300
 dim_model: 600
 dim_ff: 1200 
 num_heads: 10
-dropouti: 0.65
+dropouti: 0.5
 dropouth: 0.1
 dropouta: 0.5
 dropoutc: 0.65
