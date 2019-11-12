@@ -1,4 +1,6 @@
 # segtree-transformer-v0
+*Please see our new work [BP-Transformer](https://arxiv.org/abs/1911.04070), which extends this work. This repo is being deprecated.*
+
 This repo contains code and configs of [SegTree Transformer: Iterative Refinement of Hierarchical Features](https://rlgm.github.io/papers/67.pdf) (ICLR-RLGM 2019).
 
 Transformer model can be viewed as a Graph Attention Network over complete graphs. Instead of complete graph, SegTree Transformer incorporates a latent Segment Tree structure with bottom-up and top-down edges, the time/space complexity per layer is O(d * n log n), where d refers to the hidden size and n refers to the sequence length. 
