@@ -1,5 +1,5 @@
 # segtree-transformer-v0
-*Please see our new work [BP-Transformer](https://arxiv.org/abs/1911.04070), which extends this work. This repo is being deprecated.*
+**Please see our new work [BP-Transformer](https://arxiv.org/abs/1911.04070), which extends this work. This repo is being deprecated.**
 
 This repo contains code and configs of [SegTree Transformer: Iterative Refinement of Hierarchical Features](https://rlgm.github.io/papers/67.pdf) (ICLR-RLGM 2019).
 
